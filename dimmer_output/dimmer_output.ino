@@ -1,4 +1,5 @@
 #include <Conceptinetics.h>
+#include <Wire.h>
 
 #define DMX_MASTER_CHANNELS   6
 
@@ -93,6 +94,11 @@ void scene5 (void){
 
 // the setup routine runs once when you press reset:
 void setup() {
+   Serial.begin(115200);  // Initialize serial communications with PC
+//  Wire.begin();    // join i2c bus ( as Master ) Arduino 2560 - Touch LCD
+//  Wire.begin(1);   // join i2c bus ( as Master )  Arduino Uno - USB Stick Recorder
+    Wire.begin(2);   // join i2c bus ( as Master ) Arduino 2560 - { 2x DMX, Pixel, Midi in/out } - Output Board
+//    Wire.onReceive(receiveI2C); // register event
 
   // Enable DMX master interface and start transmitting
   dmx_master.enable ();

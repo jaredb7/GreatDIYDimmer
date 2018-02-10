@@ -57,3 +57,32 @@ But i hope with the Above project an the different levels of coding needed, this
 - {Be super great if it could use Xlights Sequences to play in it}
 - {E1.31 would be great, even better if it used the latest sync check}
 - RDM DMX is possable via hardware, just software is needed for it
+
+This is How your directory should look
+
+```
+your_sketchbook
+ |
+ +--libraries
+ |   |
+ |   +--Adafruit_GFX_Library
+ |   |
+ |   +--Adafruit_TFTLCD
+ |   |
+ |   +--Adafruit_NeoPixel
+ |   |
+ |   +--MFRC522
+ |   |
+ |   +--MCUFRIEND_kbv
+ |   |
+ |   +--SdFat
+ |   |
+ |   +--UsbFat
+ |   |
+ |   +--Conceptinetics
+ |
+ +--
+     |
+     +--
+     +--
+```

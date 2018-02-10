@@ -4,3 +4,5 @@
 // what happens when certain soft touch "buttons" get pressed, an what functions do they trigger an what light patten will be generated?
 // are you testing a panel sequence, or are you outputting it?
 // 
+
+

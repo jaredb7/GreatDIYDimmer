@@ -1,223 +1,80 @@
-///////////////////////////////////////// Setup ///////////////////////////////////
-
-// allows/denys master's and sub users, allow different permissions to functions, can block all access to functions
-
-// #include <Servo.h>
-
-/*
-  For visualizing whats going on hardware
-  we need some leds and
-  to control door lock a relay and a wipe button
-  (or some other hardware)
-  Used common anode led,digitalWriting HIGH turns OFF led
-  Mind that if you are going to use common cathode led or
-  just seperate leds, simply comment out #define COMMON_ANODE,
- */
-/*
-void rfid_startup() {
-#define COMMON_ANODE
-
-#ifdef COMMON_ANODE
-#define LED_ON LOW
-#define LED_OFF HIGH
-#else
-#define LED_ON HIGH
-#define LED_OFF LOW
-#endif
-
-#define redLed 2    // Set Led Pins
-#define greenLed 6
-#define blueLed 5
-
-#define relay 3     // Set Relay Pin
-
-#define sdPin 4     // Set SD Pin
-
-boolean match = false;          // initialize card match to false
-boolean programMode = false;  // initialize programming mode to false
-
-int successRead;    // Variable integer to keep if we have Successful Read from Reader
-
-byte readCard[4];   // Stores scanned ID read from RFID Module
-byte masterCard[4];   // Stores master card's ID
-
-char filename[] = "XXXXXXXXXXXXXXX.DAT";  // Stores variable filename
-char extension[] = "DAT";          // sometimes the extension gets modified
-char dir[] = "/PICCS/";
-
-
-/************ ETHERNET STUFF ************/
-/*
- * // Initialize the Ethernet server library
-// with the IP address and port you want to use
-// (port 80 is default for HTTP):
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress ip(192, 168, 1, 235);
-EthernetServer server(80);
-
-
-  //Arduino Pin Configuration
-  pinMode(redLed, OUTPUT);
-  pinMode(greenLed, OUTPUT);
-  pinMode(blueLed, OUTPUT);
-  pinMode(relay, OUTPUT);        // Be careful how relay circuit behave on while resetting or power-cycling your Arduino
-  digitalWrite(relay, HIGH);    // Make sure door is locked
-  digitalWrite(redLed, LED_OFF);  // Make sure led is off
-  digitalWrite(greenLed, LED_OFF);  // Make sure led is off
-  digitalWrite(blueLed, LED_OFF); // Make sure led is off
-
-  //Initialize
-  Serial.println(F("Access Control v4.3"));   // For debugging purposes
-  SPI.begin();           // MFRC522 Hardware uses SPI protocol
-  Ethernet.begin(mac, ip);
-  server.begin();
-  Serial.print("server is at ");
-  Serial.println(Ethernet.localIP());
-  if (!SD.begin(sdPin)) {                      // Initialize SD Hardware
-    Serial.println(F("SD initialization failed!"));  // Could not initialize
-    redSolid();
-    while (true);                                    // Do not go further
-  }
-  Serial.println(F("SD initialization done."));      // Yay all SPI slaves work
-  mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
-  ShowReaderDetails();   // Show details of PCD - MFRC522 Card Reader details
-
-  //If you set Antenna Gain to Max it will increase reading distance
-  //mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max);
-
-  checkMaster();      // Check if masterCard defined
-  Serial.println(F("Everything Ready"));
-  Serial.println(F("Waiting PICCs to be scanned"));
-  cycleLeds();        // Lets give user some feedback that hardware initialized by cycling leds
-}
-
-
+// allows or denys master user's and slave sub users, allow different permissions to functions, can block all access to functions, add/remove cards/acess level
+// screen list of all users an there acess level  
 
 ///////////////////////////////////////// Main Loop ///////////////////////////////////
-void loop1 () {
-int successRead;    // Variable integer to keep if we have Successful Read from Reader
-byte readCard[4];   // Stores scanned ID read from RFID Module
-byte masterCard[4];   // Stores master card's ID
-
-char filename[] = "XXXXXXXXXXXXXXX.DAT";  // Stores variable filename
-char extension[] = "DAT";          // sometimes the extension gets modified
-char dir[] = "/PICCS/";
-
-boolean programMode = false;  // initialize programming mode to false
+void RFID () {
+//Serial.println("*****************RFID**********************************");  
+ if (RFIDPASS==0){
   do {
-    checkClient();
-    successRead = getID();  // sets successRead to 1 when we get read from reader otherwise 0
-    if (programMode) {
-      cycleLeds();              // Program Mode cycles through RGB waiting to read a new card
-    }
-    else {
-      blueSolid();    // Normal mode, blue Power LED is on, all others are off
-    }
+//   checkClient();
+     ScanRFID(); // (LCD_Graphics)
+     showtimer(2);
+     
+     successRead = getID();  // sets successRead to 1 when we get read from reader otherwise 0
+     }
+    while (!successRead);   // the program will not go further while you not get a successful read
   }
-  while (!successRead);   // the program will not go further while you not get a successful read
-  if (programMode) {
-    if (isMaster(readCard)) {   // If master card scanned again exit program mode
-      Serial.println(F("Master Card Scanned"));
-      Serial.println(F("Exiting Program Mode"));
-      Serial.println(F("-----------------------------"));
-      programMode = false;
-      return;
-    }
-    else {
-      if ( findID() ) { // If scanned card is known delete it
-        Serial.println(F("I know this PICC, removing..."));
-        removeID();
-        Serial.println(F("-----------------------------"));
+ 
+ if (successRead==1 && RFIDPASS==0) {
+       if (programMode) {
+          if (isMaster(readCard)) {   // If master card scanned again exit program mode
+            Serial.println(F("Master Card Scanned"));
+            Serial.println(F("Exiting Program Mode"));
+            Serial.println(F("-----------------------------"));
+            rfidaccess=1;  rfid_access(rfidaccess);
+//            myGLCD.setColor(0, 0, 255);  myGLCD.fillCircle(15,15,10);
+            programMode = false;
+            return;
+          } else {
+          if ( findID() ) { // If scanned card is known delete it
+            Serial.println(F("I know this PICC, removing..."));
+            removeID();
+            Serial.println(F("-----------------------------"));
+            } else {            // If scanned card is not known add it
+            Serial.println(F("I do not know this PICC, adding..."));
+            writeID();
+            Serial.println(F("-----------------------------"));
+          }
       }
-      else {            // If scanned card is not known add it
-        Serial.println(F("I do not know this PICC, adding..."));
-        writeID();
-        Serial.println(F("-----------------------------"));
-      }
-    }
-  }
-  else {
+  } else {
     if (isMaster(readCard)) {   // If scanned card's ID matches Master Card's ID enter program mode
       programMode = true;
       Serial.println(F("Hello Master - Entered Program Mode"));
       Serial.println(F("Scan a PICC to ADD or REMOVE"));
       Serial.println(F("-----------------------------"));
-    }
-    else {
+        rfidaccess=2; rfid_access(rfidaccess);
+    } else {
       if (findID()) { // If not, check if we can find it
         Serial.println(F("Welcome, You shall pass"));
-        granted(300);         // Open the door lock for 300 ms
-      }
-      else {      // If not, show that the ID was not valid
+        Serial.println(F("Access Granted"));
+        rfidaccess=1; rfid_access(rfidaccess);
+        RFIDPASS=1;
+      } else {      // If not, show that the ID was not valid
         Serial.println(F("You shall not pass"));
-        denied();
+        Serial.println(F("Access Denied"));
+        rfidaccess=0; rfid_access(rfidaccess);
       }
     }
   }
 }
-
-void checkClient() {
-
-  
- EthernetClient client = server.available();  // try to get client
-  if (client) {  // got client?
-    boolean currentLineIsBlank = true;
-    while (client.connected()) {
-      if (client.available()) {   // client data available to read
-        char c = client.read(); // read 1 byte (character) from client
-        // last line of client request is blank and ends with \n
-        // respond to client only after last line received
-        if (c == '\n' && currentLineIsBlank) {
-          // send a standard http response header
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
-          client.println("Connection: close");
-          client.println();
-          client.print("<html><head><title>Arduino RFID Access Control</title></head><body><h1>Welcome RFID Access Control 4</h1><p>Here is the list of Authorized Users</p><br /><table border=1><tr><td><b>User Name</b></td><td><b>UID File</b></td><td><b>Remove</b></td></tr>");
-          
-          File dir = SD.open("/PICCS");
-          while (true) {
-            File entry =  dir.openNextFile();
-            if (! entry) {
-             // no more files
-             break;
-            }
-            client.print("<tr><td>");
-            while (entry.available()) {
-              client.write(entry.read());
-            }
-            entry.close();
-            client.print("</td><td>");
-            client.print(entry.name());
-            client.print("</td><td>");
-            client.println("<form method=\"get\">");
-            client.println("</form>");
-            client.print("</td></tr>");
-
-          }
-
-          client.print("</table></body></html>");
-          break;
-        }
-        // every line of text received from the client ends with \r\n
-        if (c == '\n') {
-          // last character on line of received text
-          // starting new line with next character read
-          currentLineIsBlank = true;
-        }
-        else if (c != '\r') {
-          // a text character was received from client
-          currentLineIsBlank = false;
-        }
-      } // end if (client.available())
-    } // end while (client.connected())
-    delay(1);      // give the web browser time to receive the data
-    client.stop(); // close the connection
-  } // end if (client)
 }
-
-
-
+void rfid_access(int l){
+     if (l==0) { // Access Denied
+        Serial1.println("RFID_FAIL");
+        myGLCD.fillScreen(BLACK);  myGLCD.setBackColor(255,255,255);  // Sets the background color to black
+        myGLCD.setColor(0, 255, 0);  myGLCD.fillCircle(15,15,10);
+     } 
+     if (l==1) { // Access Granted
+        Serial1.println("RFID_PASS");
+         myGLCD.fillScreen(BLACK);  myGLCD.setBackColor(255,255,255);  // Sets the background color to black
+        myGLCD.setColor(0, 0, 255);  myGLCD.fillCircle(15,15,10);
+     } 
+     if (l==2) { // Master Mode
+      Serial1.println("RFID_ADMIN");
+        myGLCD.fillScreen(BLACK);  myGLCD.setBackColor(255,255,255);  // Sets the background color to black
+        myGLCD.setColor(255, 0, 0);  myGLCD.fillCircle(15,15,10);
+     } 
+  }
 
 void getFilename() {  // We will store UIDs as files on SD card
   sprintf(filename, "%s%02x%02x%02x%02x.%s", dir, readCard[0], readCard[1], // Convert readCard data to char and append extension
@@ -225,7 +82,7 @@ void getFilename() {  // We will store UIDs as files on SD card
 }
 
 boolean findID () {  // Check If we can find UID's specific file
-  File fileopen = SD.open(filename);
+  File fileopen = sd.open(filename);
   if (fileopen) {
     fileopen.close();  // Found it close
     return true;
@@ -236,43 +93,29 @@ boolean findID () {  // Check If we can find UID's specific file
 }
 
 void writeID () {
-  File filewrite = SD.open(filename, FILE_WRITE);
+  File filewrite = sd.open(filename, FILE_WRITE);
   filewrite.close();
-  if (SD.exists(filename)) {
+  if (sd.exists(filename)) {
     Serial.println(F("Succesfully added ID record"));
-    greenBlink();
+ //   greenBlink();
   }
   else {
     Serial.println(F("Failed to add record"));
-    redBlink();
+//    redBlink();
   }
 }
 
 void removeID () {
-  SD.remove(filename);
-  if (SD.exists(filename)) {
+  sd.remove(filename);
+  if (sd.exists(filename)) {
     Serial.println(F("Failed to remove. Record still exists"));
-    redBlink();
+//    redBlink();
   }
   else {
     Serial.println(F("Succesfully removed ID record"));
-    blueBlink();
+//    blueBlink();
   }
 }
-
-/////////////////////////////////////////  Access Granted    ///////////////////////////////////
-void granted (int setDelay) {
-  digitalWrite(relay, LOW);     // Unlock door!
-  delay(setDelay);      // Hold door lock open for given seconds
-  digitalWrite(relay, HIGH);    // Relock door
-  greenSolid();
-}
-
-///////////////////////////////////////// Access Denied  ///////////////////////////////////
-void denied() {
-  redSolid();
-}
-
 
 ///////////////////////////////////////// Get PICC's UID ///////////////////////////////////
 int getID() {
@@ -289,7 +132,7 @@ int getID() {
   Serial.println(F("Scanned PICC's UID:"));
   for (int i = 0; i < 4; i++) {  //
     readCard[i] = mfrc522.uid.uidByte[i];
-    Serial.print(readCard[i], HEX);
+     cardid=readCard[i];    Serial.print(readCard[i], HEX);
   }
   Serial.println("");
   mfrc522.PICC_HaltA(); // Stop reading
@@ -298,9 +141,9 @@ int getID() {
 }
 
 void checkMaster() {
-  if (SD.exists("/SYS/master.dat")) {              // Check if we have master.dat on SD card
+  if (sd.exists("SYS/master.dat")) {              // Check if we have master.dat on SD card
     Serial.print(F("Master Card's UID: "));      // Since we have it print to serial
-    File masterfile = SD.open("/SYS/master.dat");  // Open file
+    File masterfile = sd.open("SYS/master.dat");  // Open file
     for (int i = 0; i < 4; i++) {             // Loop 4 times to get 4 bytes
       readCard[i] = masterfile.read();
       Serial.print(readCard[i], HEX);         // Actual serial printing of each byte
@@ -314,47 +157,34 @@ void checkMaster() {
     Serial.println(F("Scan A PICC to Define as Master Card"));
     do {
       successRead = getID(); // sets successRead to 1 when we get read from reader otherwise 0
-      blueBlink(); // Visualize Master Card need to be defined
+//      blueBlink(); // Visualize Master Card need to be defined
     }
     while (!successRead); //the program will not go further while you not get a successful read
-    File masterfile = SD.open("/SYS/master.dat", FILE_WRITE);
+    File masterfile = sd.open("SYS/master.dat", FILE_WRITE);
     if (masterfile) {
       Serial.println(F("Writing to master.dat..."));
       masterfile.write(readCard, 4);
       // close the file:
       masterfile.close();
+      writeID();
       Serial.println(F("Master Card successfuly defined"));
     } else {
       // if the file didn't open, print an error:
       Serial.println(F("error creating master.dat"));
-      redBlink();
+ //     redBlink();
     }
   }
 }
 
 
-
-
 void ShowReaderDetails() {
   // Get the MFRC522 software version
   byte v = mfrc522.PCD_ReadRegister(mfrc522.VersionReg);
-  Serial.print(F("MFRC522 Software Version: 0x"));
-  Serial.print(v, HEX);
-  if (v == 0x91)
-    Serial.print(F(" = v1.0"));
-  else if (v == 0x92)
-    Serial.print(F(" = v2.0"));
-  else
-    Serial.print(F(" (unknown)"));
-  Serial.println("");
+  Serial.println(); Serial1.println("RFID_Fail");  Serial.print(F("RFID - MFRC522 Software Version: 0x"));  Serial.print(v, HEX); Serial.println(F(" = v2.0")); 
   // When 0x00 or 0xFF is returned, communication probably failed
-  if ((v == 0x00) || (v == 0xFF)) {
-    Serial.println(F("WARNING: Communication failure, is the MFRC522 properly connected?"));
-    redSolid();
-    while (true); // do not go further
-  }
+  if ((v == 0x00) || (v == 0xFF)) {    Serial.println(F("Error: Communication failure to RFID Scanner!"));    while (true);   }
 }
-
+//Serial.println("RFID_FAIL");
 ///////////////////////////////////////// Check Bytes   ///////////////////////////////////
 boolean checkTwo ( byte a[], byte b[] ) {
   if ( a[0] != NULL )       // Make sure there is something in the array first
@@ -379,101 +209,4 @@ boolean isMaster( byte test[] ) {
   else
     return false;
 }
-
-///////////////////////////////////////// Write Success to EEPROM   ///////////////////////////////////
-// Flashes the green LED 3 times to indicate a successful write to EEPROM
-void greenBlink() {
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is on
-  delay(200);
-  digitalWrite(greenLed, LED_ON);   // Make sure green LED is on
-  delay(200);
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-  delay(200);
-  digitalWrite(greenLed, LED_ON);   // Make sure green LED is on
-  delay(200);
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-  delay(200);
-  digitalWrite(greenLed, LED_ON);   // Make sure green LED is on
-  delay(200);
-}
-
-///////////////////////////////////////// Write Failed to EEPROM   ///////////////////////////////////
-// Flashes the red LED 3 times to indicate a failed write to EEPROM
-void redBlink() {
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-  delay(200);
-  digitalWrite(redLed, LED_ON);   // Make sure red LED is on
-  delay(200);
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  delay(200);
-  digitalWrite(redLed, LED_ON);   // Make sure red LED is on
-  delay(200);
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  delay(200);
-  digitalWrite(redLed, LED_ON);   // Make sure red LED is on
-  delay(200);
-}
-
-///////////////////////////////////////// Success Remove UID From EEPROM  ///////////////////////////////////
-// Flashes the blue LED 3 times to indicate a success delete to EEPROM
-void blueBlink() {
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-  delay(200);
-  digitalWrite(blueLed, LED_ON);  // Make sure blue LED is on
-  delay(200);
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  delay(200);
-  digitalWrite(blueLed, LED_ON);  // Make sure blue LED is on
-  delay(200);
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  delay(200);
-  digitalWrite(blueLed, LED_ON);  // Make sure blue LED is on
-  delay(200);
-}
-
-
-///////////////////////////////////////// Cycle Leds (Program Mode) ///////////////////////////////////
-void cycleLeds() {
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  digitalWrite(greenLed, LED_ON);   // Make sure green LED is on
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  delay(200);
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-  digitalWrite(blueLed, LED_ON);  // Make sure blue LED is on
-  delay(200);
-  digitalWrite(redLed, LED_ON);   // Make sure red LED is on
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  delay(200);
-}
-
-//////////////////////////////////////// Normal Mode Led  ///////////////////////////////////
-void blueSolid () {
-  digitalWrite(blueLed, LED_ON);  // Blue LED ON and ready to read card
-  digitalWrite(redLed, LED_OFF);  // Make sure Red LED is off
-  digitalWrite(greenLed, LED_OFF);  // Make sure Green LED is off
-}
-
-void greenSolid () {
-  digitalWrite(blueLed, LED_OFF);   // Turn off blue LED
-  digitalWrite(redLed, LED_OFF);  // Turn off red LED
-  digitalWrite(greenLed, LED_ON);   // Turn on green LED
-  delay(1000);        // Hold green LED on for a second
-}
-
-///////////////////////////////////////// Access Denied  ///////////////////////////////////
-void redSolid() {
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  digitalWrite(redLed, LED_ON);   // Turn on red LED
-  delay(1000);
-}
-*/
 
