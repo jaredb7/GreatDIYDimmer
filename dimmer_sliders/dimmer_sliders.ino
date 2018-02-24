@@ -18,8 +18,9 @@ Adafruit_ADS1115 ads3(0x4B);     /* Dimming Module #4 x4B */
 int16_t slid1=0, slidold1=0, slid2=0, slidold2=0, slid3=0, slidold3=0, slid4=0, slidold4=0, slid5=0, slidold5=0, slid6=0, slidold6=0, slid7=0, slidold7=0, slid8=0, slidold8=0;
 int but1=0, butold1=0, but2=0, butold2=0, but3=0, butold3=0, but4=0, butold4=0,but5=0, butold5=0, but6=0, butold6=0, but7=0, butold7=0, but8=0, butold8=0, joyold1=0, joyold2=0, joyold3=0, joyold4=0, joyold5=0, joyold6=0, joyold7=0, joyold8=0; 
 int16_t joy0, joy1, joy2, joy3, joy4, joy5, joy6, joy7, x=0;
-String inputString = "", RFID="fail";
+String inputString = "", RFID="loading";
 boolean stringComplete = false;
+uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 void setup() 
 {      uint8_t i;  int x=200; // delay in startup scroll of leds (fake loading - Delay)
@@ -32,9 +33,10 @@ void setup()
   pinMode(6, INPUT_PULLUP); pinMode(7, INPUT_PULLUP); pinMode(8, INPUT_PULLUP); pinMode(9, INPUT_PULLUP); 
   FastLED.addLeds<WS2811, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   FastLED.setBrightness(BRIGHTNESS);
-  Serial.println("Sliders_Ready");
+  pinMode(2, OUTPUT);  pinMode(4, OUTPUT);  pinMode(5, OUTPUT);
+  digitalWrite(2, HIGH);  digitalWrite(4, HIGH);  digitalWrite(5, HIGH);
+//rfid_fail();
 }
-uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 void serial_output() 
 {
@@ -52,16 +54,16 @@ void serial_output()
   but4 = digitalRead(9);  if (but4!=butold4) { butold4=but4; Serial.print("J_But_4:"); Serial.println(butold4); }
   joy0 = map(ads0.readADC_SingleEnded(3), 0, 24600, 0, 255);
   if (joy0!=joyold1) { joyold1=joy0;
-    if (stick==1) {  if (joy0>=145) { Serial.println("Joy1:Left"); } else if (joy0<=120) { Serial.println("Joy1:Right"); } }else{ Serial.print("JoyH:"); Serial.println(joy0);  }  }
+    if (stick==1) {  if (joy0>=145) { Serial.println("Joy1:Left"); } else if (joy0<=115) { Serial.println("Joy1:Right"); } if ((joy0>=115) && (joy0<=145)){ Serial.println("Joy1:HCenter"); }  }else{ Serial.print("JoyH:"); Serial.println(joy0);  }  }
   joy1 = map(ads0.readADC_SingleEnded(2), 0, 24600, 0, 255);
   if (joy1!=joyold2) { joyold2=joy1;
-    if (stick==1) {  if (joy1<=120) { Serial.println("Joy1:Up"); } else if (joy1>=146) { Serial.println("Joy1:Down"); } }else{  Serial.print("JoyV:");   Serial.println(joy1);  }  }  
+    if (stick==1) {  if (joy1<=120) { Serial.println("Joy1:Up"); } else if (joy1>=146) { Serial.println("Joy1:Down"); } if ((joy1>=120) && (joy1<=145)){ Serial.println("Joy1:VCenter"); } }else{  Serial.print("JoyV:");   Serial.println(joy1);  }  }  
   joy2 = map(ads1.readADC_SingleEnded(2), 0, 24600, 0, 255);
   if (joy2!=joyold3) { joyold3=joy2;
     if (stick==1) {  if (joy2>=145) { Serial.println("Joy2:Left"); } else if (joy2<=120) { Serial.println("Joy1:Right"); } }else{ Serial.print("JoyH:"); Serial.println(joy2);  }  }
   joy3 = map(ads1.readADC_SingleEnded(3), 0, 24600, 0, 255);
   if (joy3!=joyold4) { joyold4=joy3;
-    if (stick==1) {  if (joy3<=120) { Serial.println("Joy2:Up"); } else if (joy3>=146) { Serial.println("Joy1:Down"); } }else{  Serial.print("JoyV:");   Serial.println(joy3);  }  }  
+    if (stick==1) {  if (joy3<=115) { Serial.println("Joy2:Up"); } else if (joy3>=146) { Serial.println("Joy1:Down"); } }else{  Serial.print("JoyV:");   Serial.println(joy3);  }  }  
 /*
   joy4 = map(ads2.readADC_SingleEnded(2), 0, 24600, 0, 255);
   if (joy4!=joyold5) { joyold5=joy4;  Serial.print("Joystick 3: ");  if (joy4<127) Serial.print("Left | "); else if (joy4>130) Serial.print("Right | "); }
@@ -77,18 +79,19 @@ void serial_output()
 void loop() 
 {
  serialEvent();
- if (stringComplete) {  
+ if (stringComplete) {   inputString.trim();
+//  Serial.println(inputString);
   if (inputString=="RFID_PASS") { RFID="pass"; rfid_pass();  inputString = "";    stringComplete = false;}
   if (inputString=="RFID_FAIL") { RFID="fail"; rfid_fail();  inputString = "";    stringComplete = false;}
   if (inputString=="RFID_ADMIN") { RFID="admin"; rfid_admin();  inputString = "";    stringComplete = false;}
-  if (inputString=="Stick") { if (stick==1) stick=1; else if (stick==0) stick=0; }
-  Serial.println(inputString);
-  inputString = "";    stringComplete = false;
+  if (inputString=="Stick") { if (stick==1) stick=1; else if (stick==0) stick=0;  inputString = "";    stringComplete = false;  }
  }
-//Serial.println(RFID);
-//if (RFID=="fail") rfid_fail();
+//Serial.print("recived ");
+if (RFID=="fail") rfid_fail();
 if (RFID=="pass") serial_output();
 //  Serial.println(RFID);
+
+
 }
 
 void serialEvent(){ 
@@ -99,26 +102,35 @@ void serialEvent(){
 
 void rfid_fail()
 {
+digitalWrite(2, LOW);
+digitalWrite(4, HIGH);
+digitalWrite(5, HIGH);
   // a colored dot sweeping back and forth, with fading trails
-  fadeToBlackBy( leds, NUM_LEDS, 20);
-  int pos = beatsin16( 13, 0, NUM_LEDS-1 );
-  leds[pos] += CHSV( 0, 255, 192);
-  FastLED.show();  
-  EVERY_N_MILLISECONDS( 10 ) { gHue++;  /* Serial.println("."); */ } // slowly cycle the "base color" through the rainbow
+//  fadeToBlackBy( leds, NUM_LEDS, 20);
+//  int pos = beatsin16( 13, 0, NUM_LEDS-1 );
+//  leds[pos] += CHSV( 0, 255, 192);
+//  FastLED.show();  
+//  EVERY_N_MILLISECONDS( 10 ) { gHue++;  /* Serial.println("."); */ } // slowly cycle the "base color" through the rainbow
 }
 void rfid_admin()
 {
+digitalWrite(2, HIGH);
+digitalWrite(4, LOW);
+digitalWrite(5, HIGH);
   // a colored dot sweeping back and forth, with fading trails
-  fadeToBlackBy( leds, NUM_LEDS, 20);
-  int pos = beatsin16( 13, 0, NUM_LEDS-1 );
-  leds[pos] += CHSV( 160, 255, 128); //// CHSV( colour_wheel, rich, bright);
-  FastLED.show();  
+//  fadeToBlackBy( leds, NUM_LEDS, 20);
+//  int pos = beatsin16( 13, 0, NUM_LEDS-1 );
+//  leds[pos] += CHSV( 160, 255, 128); //// CHSV( colour_wheel, rich, bright);
+//  FastLED.show();  
 }
 void rfid_pass()
 {
+digitalWrite(2, HIGH);
+digitalWrite(4, HIGH);
+digitalWrite(5, LOW);
   // a colored dot sweeping back and forth, with fading trails
-  fadeToBlackBy( leds, NUM_LEDS, 20);
-  int pos = beatsin16( 13, 0, NUM_LEDS-1 );
-  leds[pos] += CHSV( 96, 255, 128); //// CHSV( colour_wheel, rich, bright);
-  FastLED.show();  
+//  fadeToBlackBy( leds, NUM_LEDS, 20);
+//  int pos = beatsin16( 13, 0, NUM_LEDS-1 );
+//  leds[pos] += CHSV( 96, 255, 128); //// CHSV( colour_wheel, rich, bright);
+//  FastLED.show();  
 }

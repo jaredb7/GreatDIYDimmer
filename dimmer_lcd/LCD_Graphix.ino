@@ -57,20 +57,27 @@ void showtimer(int x) {
   }
 }
 
-void recvJoysticks(int aw,int ax,int ay,int az,int bw,int bx,int by,int bz,int cw,int cx,int cy,int cz,int dw,int dx,int dy,int dz){
+void recvJoysticks(int aw_new,int ax_new,int ay_new,int az_new,int bw_new,int bx_new,int by_new,int bz_new,int cw_new,int cx_new,int cy_new,int cz_new,int dw_new,int dx_new,int dy_new,int dz_new){
  // graphical picture of moving head light with X Y Z an W=Colour
       myGLCD.setColor(255, 0, 0);
       myGLCD.drawRoundRect(51,72,103,124); // JoyStick 1
       myGLCD.drawRoundRect(151,72,203,124); // JoyStick 2
       myGLCD.drawRoundRect(251,72,303,124); // JoyStick 3
       myGLCD.drawRoundRect(351,72,403,124); // JoyStick 4
-      myGLCD.setColor(0, 0, 0);  myGLCD.fillCircle((57+aw),(78+ax),3);
-      myGLCD.setColor(0, 0, 0);  myGLCD.fillCircle((157+bw),(78+bx),3);
-      myGLCD.setColor(0, 0, 0);  myGLCD.fillCircle((257+cw),(78+cx),3);
-      myGLCD.setColor(0, 0, 0);  myGLCD.fillCircle((357+dw),(78+dx),3);
+      myGLCD.setColor(0, 255, 255);  myGLCD.fillCircle((57+aw),(78+ax),3);
+      myGLCD.setColor(0, 255, 255);  myGLCD.fillCircle((157+bw),(78+bx),3);
+      myGLCD.setColor(0, 255, 255);  myGLCD.fillCircle((257+cw),(78+cx),3);
+      myGLCD.setColor(0, 255, 255);  myGLCD.fillCircle((357+dw),(78+dx),3);
+
+      myGLCD.setColor(0, 0, 0);  myGLCD.fillCircle((57+aw_new),(78+ax_new),3);
+      myGLCD.setColor(0, 0, 0);  myGLCD.fillCircle((157+bw_new),(78+bx_new),3);
+      myGLCD.setColor(0, 0, 0);  myGLCD.fillCircle((257+cw_new),(78+cx_new),3);
+      myGLCD.setColor(0, 0, 0);  myGLCD.fillCircle((357+dw_new),(78+dx_new),3);
      //myGLCD.setColor(0, 0, 0);  myGLCD.fillCircle(15,15,10);
+      aw=aw_new; ax=ax_new; ay=ay_new; az=az_new; bw=bw_new; bx=bx_new; by=by_new; bz=bz_new; cw=cw_new; cx=cx_new; cy=cy_new; cz=cz_new; dw=dw_new; dx=dx_new; dy=dy_new; dz=dz_new;
   }
- void vu_meter(int a) {
+
+void vu_meter(int a) {
   
  }
  

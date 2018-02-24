@@ -180,7 +180,7 @@ void checkMaster() {
 void ShowReaderDetails() {
   // Get the MFRC522 software version
   byte v = mfrc522.PCD_ReadRegister(mfrc522.VersionReg);
-  Serial.println(); Serial1.println("RFID_Fail");  Serial.print(F("RFID - MFRC522 Software Version: 0x"));  Serial.print(v, HEX); Serial.println(F(" = v2.0")); 
+  Serial.println(); Serial1.println("RFID_FAIL");  Serial.print(F("RFID - MFRC522 Software Version: 0x"));  Serial.print(v, HEX); Serial.println(F(" = v2.0")); 
   // When 0x00 or 0xFF is returned, communication probably failed
   if ((v == 0x00) || (v == 0xFF)) {    Serial.println(F("Error: Communication failure to RFID Scanner!"));    while (true);   }
 }

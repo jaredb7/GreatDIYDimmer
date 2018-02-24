@@ -82,7 +82,7 @@ static void scan()
         debounce_count[current][j]++;
         if( debounce_count[current][j] == MAX_DEBOUNCE )
         {
-          Serial.print("Key Down ");
+          Serial.print("Key_Down_");
           Serial.println((current * NUM_BTN_ROWS) + j);
   leds[(current * NUM_BTN_ROWS) + j] = CRGB::Blue;
   FastLED.show();
@@ -97,7 +97,7 @@ static void scan()
         debounce_count[current][j]--;
         if( debounce_count[current][j] == 0 )
         {
-          Serial.print("Key Up ");
+          Serial.print("Key_Up_");
           Serial.println((current * NUM_BTN_ROWS) + j);
   leds[(current * NUM_BTN_ROWS) + j] = CRGB::Black;
   FastLED.show();

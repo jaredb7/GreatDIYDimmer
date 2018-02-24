@@ -17,7 +17,7 @@ int sensorvalue=0,lastsensorvalue=0,lastminsensorvalue=1024,oldsensorvalue=0;
 int i;
 int led[]={22,24,26,28,30,32};
 int val;
-
+int aw=20, ax=20, ay, az, bw=20, bx=20, by, bz, cw=20, cx=20, cy, cz, dw=20, dx=20, dy, dz;
 
 #include <MCUFRIEND_kbv.h>
 MCUFRIEND_kbv tft;       
@@ -41,7 +41,7 @@ File myFile;
 
 //Sd2Card card;
 //SdFile root;
-String inputString = "", inputString1 = "", inputString2 = "", inputString3 = "", timer = "", dater = "";         // a String to hold incoming data
+String inputString = "", inputString1 = "", inputString2 = "", inputString3 = "", timer = "", dater = "", s = "" ;         // a String to hold incoming data
 boolean stringComplete = false,stringComplete1 = false,stringComplete2 = false,stringComplete3 = false;  // whether the string is complete
 
     int xR=38;
@@ -148,31 +148,19 @@ Wire.onReceive(receiveI2C); // register event
 }
 
 void serialEvent(){ 
-  if (Serial.available() > 0) {
-  while (Serial.available()) {  
-   char DataS=Serial.read();
+  if (Serial.available() > 0) {  while (Serial.available()) {     char DataS=Serial.read();
  //   if (bootmode==1) {  Serial3.write(DataS);  }   // Direct sliders to outputs
     char inChar = DataS; inputString += inChar;    if (inChar == '\n') {      stringComplete = true;    } }
-}
-}
+} }
 
 void serialEvent1(){  // Slidders Input
-  if (Serial1.available() > 0) {
-  while (Serial1.available()) {    char inChar1 = (char)Serial1.read();    inputString1 += inChar1;    if (inChar1 == '\n') {      stringComplete1 = true;    } }
-}
-}
+  if (Serial1.available() > 0) {  while (Serial1.available()) {    char inChar1 = (char)Serial1.read();    inputString1 += inChar1;    if (inChar1 == '\n') {      stringComplete1 = true;    } } } }
 
 void serialEvent2(){  // Buttons Input
-  if (Serial2.available() > 0) {
-  while (Serial2.available()) {    char inChar2 = (char)Serial2.read();    inputString2 += inChar2;    if (inChar2 == '\n') {      stringComplete2 = true;    } }
-} 
-}
+  if (Serial2.available() > 0) {  while (Serial2.available()) {    char inChar2 = (char)Serial2.read();    inputString2 += inChar2;    if (inChar2 == '\n') {      stringComplete2 = true;    } } } }
 
 void serialEvent3(){  // Storage Input
-  if (Serial3.available() > 0) {
-  while (Serial3.available()) {    char inChar3 = (char)Serial3.read();    inputString3 += inChar3;    if (inChar3 == '\n') {      stringComplete3 = true;    } }
-} 
-}
+  if (Serial3.available() > 0) {  while (Serial3.available()) {    char inChar3 = (char)Serial3.read();    inputString3 += inChar3;    if (inChar3 == '\n') {      stringComplete3 = true;    } } } }
 
 void receiveI2C(int howMany) {
   while (1 < Wire.available()) { // loop through all but the last
@@ -191,10 +179,40 @@ showtimer(1); //lcd graphics
 serialEvent1();
 serialEvent2();
 serialEvent3();
-if (stringComplete) {   Serial.print("Input USB- ");  Serial.println(inputString);    inputString = "";    stringComplete = false;  }
-  if (stringComplete1) {  Serial.print("Input Sliders- ");  Serial.println(inputString1);  if (inputString1=="Sliders_Ready") Serial1.print("RFID_FAIL");  inputString1 = "";    stringComplete1 = false;  }
-  if (stringComplete2) {  Serial.print("Input Buttons- ");  Serial.println(inputString2);  if (inputString2=="Buttons_Ready") Serial1.print("RFID_FAIL");  inputString2 = "";    stringComplete2 = false;  }
-  if (stringComplete3) {  Serial.print("Input Storage- ");  Serial.println(inputString3);  if (inputString3=="Storage_Ready") Serial1.print("RFID_FAIL");  inputString3 = "";    stringComplete3 = false;  }
+  if (stringComplete) {  inputString.trim(); Serial.print("Input Mega-");  Serial.println(inputString);   inputString = "";    stringComplete = false;  }
+  if (stringComplete1) { inputString1.trim(); 
+      if (inputString1=="Joy1:Right") aw=40;
+      if (inputString1=="Joy1:Left") aw=0;
+      if (inputString1=="Joy1:VCenter") aw=20;
+      if (inputString1=="Joy1:Up") ax=0;
+      if (inputString1=="Joy1:Down") ax=40;
+      if (inputString1=="Joy1:VCenter") ax=20;
+      ay=0;az=0;
+      if (inputString1=="Joy2:Right") bw=0;
+      if (inputString1=="Joy2:Left") bw=40;
+      if (inputString1=="Joy2:Up") bx=0;
+      if (inputString1=="Joy2:Down") bx=40;
+      by=0;bz=0;
+      if (inputString1=="Joy3:Right"){ cw=0; };
+      if (inputString1=="Joy3:Left"){ cw=40; };
+      if (inputString1=="Joy3:Up"){ cx=0; };
+      if (inputString1=="Joy3:Down"){ cx=40; };
+      cy=0;cz=0;
+      if (inputString1=="Joy4:Right"){ dw=0; };
+      if (inputString1=="Joy4:Left"){ dw=40; };
+      if (inputString1=="Joy4:Up"){ dx=0; };
+      if (inputString1=="Joy4:Down"){ dx=40; };
+      dy=0;dz=0;
+recvJoysticks(aw, ax, ay, az, bw, bx, by, bz, cw, cx, cy, cz, dw, dx, dy, dz);
+     if (inputString1.startsWith("Slid_1")){ s=(char)inputString1.charAt(7); Serial.print(s); }
+
+//recvdimmer(S1, S2, S3, S4, S5, S6, S7, S8);
+
+      Serial.print("Input Sliders-");  Serial.println(inputString1);  inputString1 = "";    stringComplete1 = false;  }
+  if (stringComplete2) { inputString2.trim(); Serial.print("Input Buttons-");  Serial.println(inputString2);
+      if (inputString2=="Key_Down_6") { Serial.println(" Bingo"); }  
+          inputString2 = "";    stringComplete2 = false;  }
+  if (stringComplete3) {  Serial.print("Input Storage-");  Serial.println(inputString3);  inputString3 = "";    stringComplete3 = false;  }
   if (refresh==1) {
 menusel=bootmode;
     if (menusel==0) introscreen(); // - Main Menu - Lcd graphics
@@ -218,7 +236,6 @@ menusel=bootmode;
 //    if (p.z > MINPRESSURE && p.z < MAXPRESSURE) {     x=p.x;     y=p.y;
 //     Serial.print("x line : ");   Serial.print(p.x);   Serial.print(" : y line : ");   Serial.print(p.y);   Serial.print(" | Pressure line : ");   Serial.println(p.z);
 //   }
-
 //Beat_Detect(); //audio mic beat detection
 }
  // ENABLE_SOFTWARE_SPI_CLASS
