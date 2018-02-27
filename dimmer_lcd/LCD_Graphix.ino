@@ -37,8 +37,6 @@ void menu() {
 void slider_update() {
       myGLCD.setBackColor(255,255,255); myGLCD.setColor(0, 0, 0); myGLCD.setTextSize(2);   myGLCD.print("Dimmer Monitor", 150, 40); // Prints the string on the screen
       myGLCD.setColor(255, 0, 0);    myGLCD.drawLine(25,32,440,32); // Header line
-      recvdimmer(35,0,5,95,100,65,50,25);  // Sends data to Display the 8 Sliders positions - (LCD_Graphics)
-      recvJoysticks(0,0,0,0,40,40,0,0,20,20,0,0,40,0,0,0);  // Sends data to Display the 4 Joysticks positions - (LCD_Graphics)
       myGLCD.setColor(255, 0, 0);    myGLCD.fillRect(25,290,440,316); // Footer Button Menu Box
       myGLCD.setColor(255, 255, 255); myGLCD.setTextSize(1); myGLCD.setBackColor(255,0,0);  myGLCD.print("Button No. 1  |  Button No. 2  |  Button No. 3  |  Button No. 4 ", CENTER, 300); // Prints the footer bar buttons
       myGLCD.setBackColor(255,255,255); // Sets the background color to black
@@ -59,12 +57,12 @@ void showtimer(int x) {
 
 void recvJoysticks(int aw_new,int ax_new,int ay_new,int az_new,int bw_new,int bx_new,int by_new,int bz_new,int cw_new,int cx_new,int cy_new,int cz_new,int dw_new,int dx_new,int dy_new,int dz_new){
  // graphical picture of moving head light with X Y Z an W=Colour
-      myGLCD.setColor(255, 0, 0);
+ myGLCD.setColor(255, 0, 0);
       myGLCD.drawRoundRect(51,72,103,124); // JoyStick 1
       myGLCD.drawRoundRect(151,72,203,124); // JoyStick 2
       myGLCD.drawRoundRect(251,72,303,124); // JoyStick 3
       myGLCD.drawRoundRect(351,72,403,124); // JoyStick 4
-      myGLCD.setColor(0, 255, 255);  myGLCD.fillCircle((57+aw),(78+ax),3);
+      myGLCD.setColor(0, 255, 255);  myGLCD.fillCircle((57+aw),(78+ax),3); 
       myGLCD.setColor(0, 255, 255);  myGLCD.fillCircle((157+bw),(78+bx),3);
       myGLCD.setColor(0, 255, 255);  myGLCD.fillCircle((257+cw),(78+cx),3);
       myGLCD.setColor(0, 255, 255);  myGLCD.fillCircle((357+dw),(78+dx),3);
@@ -82,47 +80,47 @@ void vu_meter(int a) {
  }
  
  void recvdimmer(int S1,int S2,int S3,int S4,int S5,int S6,int S7,int S8) {
-      int xR=0,LoC=0;
-      xR=S1;
-      if (S1!=S1old) {  myGLCD.setColor(255, 255, 255);      myGLCD.fillRect((40+LoC), (261-S1old+5), (65+LoC), (260-S1old)); S1old=S1; }
+     int xR=0,LoC=0;
+      xR=map(S1, 0, 255, 0, 110);
+      if (xR!=S1old) {  myGLCD.setColor(255, 255, 255);  myGLCD.fillRect((40+LoC), (261-S1old+5), (65+LoC), (260-S1old)); S1old=xR; }
       myGLCD.setBackColor(0,0,0);  myGLCD.setColor(255, 255, 255); myGLCD.setTextSize(1);  myGLCD.print(" 001 ",38+LoC,273); myGLCD.setBackColor(255,255,255);
-      myGLCD.setColor(255, 0, 0);      myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #1
-      myGLCD.setColor(0, 0, 0);      myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));      myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #1
-      LoC=50;  xR=S2;
-      if (S2!=S2old) {  myGLCD.setColor(255, 255, 255);      myGLCD.fillRect((40+LoC), (261-S2old+5), (65+LoC), (260-S2old)); S2old=S2; }
+      myGLCD.setColor(255, 0, 0);  myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #1
+      myGLCD.setColor(0, 0, 0);   myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));  myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #1
+      LoC=50;  xR=map(S2, 0, 255, 0, 110);
+      if (xR!=S2old) {  myGLCD.setColor(255, 255, 255);  myGLCD.fillRect((40+LoC), (261-S2old+5), (65+LoC), (260-S2old)); S2old=xR; }
       myGLCD.setBackColor(0,0,0);  myGLCD.setColor(255, 255, 255); myGLCD.setTextSize(1);  myGLCD.print(" 002 ",38+LoC,273); myGLCD.setBackColor(255,255,255);
-      myGLCD.setColor(255, 0, 0);      myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #2
-      myGLCD.setColor(0, 0, 0);      myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));      myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #2
-      LoC=100;  xR=S3;
-      if (S3!=S3old) {  myGLCD.setColor(255, 255, 255);      myGLCD.fillRect((40+LoC), (261-S3old+5), (65+LoC), (260-S3old)); S3old=S3; }
+      myGLCD.setColor(255, 0, 0);  myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #2
+      myGLCD.setColor(0, 0, 0);   myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));  myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #2
+      LoC=100; xR=map(S3, 0, 255, 0, 110);
+      if (xR!=S3old) {  myGLCD.setColor(255, 255, 255);  myGLCD.fillRect((40+LoC), (261-S3old+5), (65+LoC), (260-S3old)); S3old=xR; }
       myGLCD.setBackColor(0,0,0);  myGLCD.setColor(255, 255, 255); myGLCD.setTextSize(1);  myGLCD.print(" 003 ",38+LoC,273); myGLCD.setBackColor(255,255,255);
-      myGLCD.setColor(255, 0, 0);      myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #3
-      myGLCD.setColor(0, 0, 0);      myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));      myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #3
-      LoC=150;  xR=S4;
-      if (S4!=S4old) {  myGLCD.setColor(255, 255, 255);      myGLCD.fillRect((40+LoC), (261-S4old+5), (65+LoC), (260-S4old)); S4old=S4; }
+      myGLCD.setColor(255, 0, 0);  myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #3
+      myGLCD.setColor(0, 0, 0);   myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));  myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #3
+      LoC=150;  xR=map(S4, 0, 255, 0, 110);
+      if (xR!=S4old) {  myGLCD.setColor(255, 255, 255);  myGLCD.fillRect((40+LoC), (261-S4old+5), (65+LoC), (260-S4old)); S4old=xR; }
       myGLCD.setBackColor(0,0,0);  myGLCD.setColor(255, 255, 255); myGLCD.setTextSize(1);  myGLCD.print(" 004 ",38+LoC,273); myGLCD.setBackColor(255,255,255);
-      myGLCD.setColor(255, 0, 0);      myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #4
-      myGLCD.setColor(0, 0, 0);      myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));      myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #4
-      LoC=200;  xR=S5;
-      if (S5!=S5old) {  myGLCD.setColor(255, 255, 255);      myGLCD.fillRect((40+LoC), (261-S5old+5), (65+LoC), (260-S5old)); S5old=S5; }
+      myGLCD.setColor(255, 0, 0);  myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #4
+      myGLCD.setColor(0, 0, 0);   myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));  myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #4
+      LoC=200;   xR=map(S5, 0, 255, 0, 110);
+      if (xR!=S5old) {  myGLCD.setColor(255, 255, 255);  myGLCD.fillRect((40+LoC), (261-S5old+5), (65+LoC), (260-S5old)); S5old=xR; }
       myGLCD.setBackColor(0,0,0);  myGLCD.setColor(255, 255, 255); myGLCD.setTextSize(1);  myGLCD.print(" 005 ",38+LoC,273); myGLCD.setBackColor(255,255,255);
-      myGLCD.setColor(255, 0, 0);      myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #5
-      myGLCD.setColor(0, 0, 0);      myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));      myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #5
-      LoC=250;  xR=S6;
-      if (S6!=S6old) {  myGLCD.setColor(255, 255, 255);      myGLCD.fillRect((40+LoC), (261-S6old+5), (65+LoC), (260-S6old)); S6old=S6; }
+      myGLCD.setColor(255, 0, 0);  myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #5
+      myGLCD.setColor(0, 0, 0);   myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));  myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #5
+      LoC=250;   xR=map(S6, 0, 255, 0, 110);
+      if (xR!=S6old) {  myGLCD.setColor(255, 255, 255);  myGLCD.fillRect((40+LoC), (261-S6old+5), (65+LoC), (260-S6old)); S6old=xR; }
       myGLCD.setBackColor(0,0,0);  myGLCD.setColor(255, 255, 255); myGLCD.setTextSize(1);  myGLCD.print(" 006 ",38+LoC,273); myGLCD.setBackColor(255,255,255);
-      myGLCD.setColor(255, 0, 0);      myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #6
-      myGLCD.setColor(0, 0, 0);      myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));      myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #6
-      LoC=300;  xR=S7;
-      if (S7!=S7old) {  myGLCD.setColor(255, 255, 255);      myGLCD.fillRect((40+LoC), (261-S7old+5), (65+LoC), (260-S7old)); S7old=S7; }
+      myGLCD.setColor(255, 0, 0);  myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #6
+      myGLCD.setColor(0, 0, 0);   myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));  myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #6
+      LoC=300;   xR=map(S7, 0, 255, 0, 110);
+      if (xR!=S7old) {  myGLCD.setColor(255, 255, 255);  myGLCD.fillRect((40+LoC), (261-S7old+5), (65+LoC), (260-S7old)); S7old=xR; }
       myGLCD.setBackColor(0,0,0);  myGLCD.setColor(255, 255, 255); myGLCD.setTextSize(1);  myGLCD.print(" 007 ",38+LoC,273); myGLCD.setBackColor(255,255,255);
-      myGLCD.setColor(255, 0, 0);      myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #7
-      myGLCD.setColor(0, 0, 0);      myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));      myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #7
-      LoC=350;  xR=S8;
-      if (S8!=S8old) {  myGLCD.setColor(255, 255, 255);      myGLCD.fillRect((40+LoC), (261-S8old+5), (65+LoC), (260-S8old)); S8old=S8; }
+      myGLCD.setColor(255, 0, 0);  myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #7
+      myGLCD.setColor(0, 0, 0);   myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (260-xR));  myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #7
+      LoC=350;  xR=map(S8, 0, 255, 0, 110);
+      if (xR!=S8old) {  myGLCD.setColor(255, 255, 255);  myGLCD.fillRect((40+LoC), (261-S8old+5), (65+LoC), (260-S8old)); S8old=xR; }
       myGLCD.setBackColor(0,0,0);  myGLCD.setColor(255, 255, 255); myGLCD.setTextSize(1);  myGLCD.print(" 008 ",38+LoC,273); myGLCD.setBackColor(255,255,255);
-      myGLCD.setColor(255, 0, 0);      myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #8
-      myGLCD.setColor(0, 0, 0);      myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (261-xR));      myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #8
+      myGLCD.setColor(255, 0, 0);  myGLCD.fillRect((52+LoC), 160, (53+LoC), (259-xR+4)); // start Positioner #8
+      myGLCD.setColor(0, 0, 0);   myGLCD.fillRect((40+LoC), (261-xR+5), (65+LoC), (261-xR));  myGLCD.fillRect(50+LoC, (260-xR+5), 55+LoC, 260); // end Positioner #8
    refresh=0;
 }
     

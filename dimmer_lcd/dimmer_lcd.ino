@@ -16,7 +16,8 @@ int linein=A7;
 int sensorvalue=0,lastsensorvalue=0,lastminsensorvalue=1024,oldsensorvalue=0;
 int i;
 int led[]={22,24,26,28,30,32};
-int val;
+int sw[]={23,25,27,29,31,33};
+int val,slider,sl_val;
 int aw=20, ax=20, ay, az, bw=20, bx=20, by, bz, cw=20, cx=20, cy, cz, dw=20, dx=20, dy, dz;
 
 #include <MCUFRIEND_kbv.h>
@@ -41,13 +42,13 @@ File myFile;
 
 //Sd2Card card;
 //SdFile root;
-String inputString = "", inputString1 = "", inputString2 = "", inputString3 = "", timer = "", dater = "", s = "" ;         // a String to hold incoming data
+String inputString = "", inputString1 = "", inputString2 = "", inputString3 = "", timer = "", dater = "", nam="", jval="";         // a String to hold incoming data
 boolean stringComplete = false,stringComplete1 = false,stringComplete2 = false,stringComplete3 = false;  // whether the string is complete
 
     int xR=38;
     int xG=38;
     int xB=38;
-
+int S1=0,S2=0,S3=0,S4=0,S5=0,S6=0,S7=0,S8=0;
 int S1old=0,S2old=0,S3old=0,S4old=0,S5old=0,S6old=0,S7old=0,S8old=0, oldtime, rfidaccess=0;
 String cardid;
 boolean match = false;          // initialize card match to false
@@ -110,9 +111,10 @@ RTClib RTC;
 void setup()
 {
 SPI.begin();
-Serial.begin(115200);  inputString.reserve(200);  // Initialize serial communications with Sliders Board
-Serial1.begin(115200);  inputString1.reserve(200);  // Initialize serial communications with Buttons Board
-Serial2.begin(115200);  inputString2.reserve(200);  // Initialize serial communications with USB Stick Recorder
+Serial.begin(2000000);  inputString.reserve(200);  // Initialize serial communications with USB Stick Recorder
+//Serial1.begin(115200);
+Serial1.begin(2000000);  inputString1.reserve(200);  // Initialize serial communications with Sliders Board
+Serial2.begin(115200);  inputString2.reserve(200);  // Initialize serial communications with Buttons Board
 Serial3.begin(115200);  inputString3.reserve(200);  // Initialize serial communications with { 2x DMX, Pixel, Midi in/out } - Output Board
 Wire.begin();        // join i2c bus ( as Master ) Arduino 2560 - Touch LCD
 //  Wire.begin(1);   // join i2c bus ( as Master ) Arduino Uno  - USB Stick Recorder
@@ -163,10 +165,7 @@ void serialEvent3(){  // Storage Input
   if (Serial3.available() > 0) {  while (Serial3.available()) {    char inChar3 = (char)Serial3.read();    inputString3 += inChar3;    if (inChar3 == '\n') {      stringComplete3 = true;    } } } }
 
 void receiveI2C(int howMany) {
-  while (1 < Wire.available()) { // loop through all but the last
-    char c = Wire.read(); // receive byte as a character
-    Serial.print(c);         // print the character
-  }
+  while (1 < Wire.available()) {  char c = Wire.read(); Serial.print(c);  }
   int x = Wire.read();    // receive byte as an integer
   Serial.println(x);         // print the integer
 }
@@ -180,35 +179,31 @@ serialEvent1();
 serialEvent2();
 serialEvent3();
   if (stringComplete) {  inputString.trim(); Serial.print("Input Mega-");  Serial.println(inputString);   inputString = "";    stringComplete = false;  }
-  if (stringComplete1) { inputString1.trim(); 
-      if (inputString1=="Joy1:Right") aw=40;
-      if (inputString1=="Joy1:Left") aw=0;
-      if (inputString1=="Joy1:VCenter") aw=20;
-      if (inputString1=="Joy1:Up") ax=0;
-      if (inputString1=="Joy1:Down") ax=40;
-      if (inputString1=="Joy1:VCenter") ax=20;
-      ay=0;az=0;
-      if (inputString1=="Joy2:Right") bw=0;
-      if (inputString1=="Joy2:Left") bw=40;
-      if (inputString1=="Joy2:Up") bx=0;
-      if (inputString1=="Joy2:Down") bx=40;
-      by=0;bz=0;
-      if (inputString1=="Joy3:Right"){ cw=0; };
-      if (inputString1=="Joy3:Left"){ cw=40; };
-      if (inputString1=="Joy3:Up"){ cx=0; };
-      if (inputString1=="Joy3:Down"){ cx=40; };
-      cy=0;cz=0;
-      if (inputString1=="Joy4:Right"){ dw=0; };
-      if (inputString1=="Joy4:Left"){ dw=40; };
-      if (inputString1=="Joy4:Up"){ dx=0; };
-      if (inputString1=="Joy4:Down"){ dx=40; };
-      dy=0;dz=0;
-recvJoysticks(aw, ax, ay, az, bw, bx, by, bz, cw, cx, cy, cz, dw, dx, dy, dz);
-     if (inputString1.startsWith("Slid_1")){ s=(char)inputString1.charAt(7); Serial.print(s); }
-
-//recvdimmer(S1, S2, S3, S4, S5, S6, S7, S8);
-
-      Serial.print("Input Sliders-");  Serial.println(inputString1);  inputString1 = "";    stringComplete1 = false;  }
+  if (stringComplete1) {  
+      for (int i = 0; i < inputString1.length(); i++) {
+        if (inputString1.substring(i, i+1) == ":") {
+          nam=inputString1.substring(i-1,i-4);
+          slider=inputString1.substring(i-1).toInt();
+          sl_val=inputString1.substring(i+1).toInt();
+          if (nam=="SL_"){ 
+            if (slider==1) S1 = sl_val;   if (slider==2) S2 = sl_val;   if (slider==3) S3 = sl_val;   if (slider==4) S4 = sl_val;
+            if (slider==5) S5 = sl_val;   if (slider==6) S6 = sl_val;   if (slider==7) S7 = sl_val;   if (slider==8) S8 = sl_val;
+            recvdimmer(S1, S2, S3, S4, S5, S6, S7, S8);
+            Serial.print("Slider-");  Serial.print(slider); Serial.print("=");  Serial.println(sl_val); 
+          } 
+          if (nam=="JS_"){ jval=inputString1.substring(i+1,i+3);
+            if (slider==1) { if (jval=="RR") { aw=40; };  if (jval=="LL") { aw=0; };  if (jval=="HC") { aw=20; };  if (jval=="UU") { ax=0; }; if (jval=="DD") { ax=40; };  if (jval=="VC") { ax=20; };  ay=0;az=0;  }
+            if (slider==2) { if (jval=="RR") { bw=40; };  if (jval=="LL") { bw=0; };  if (jval=="HC") { bw=20; };  if (jval=="UU") { bx=0; }; if (jval=="DD") { bx=40; };  if (jval=="VC") { bx=20; };  by=0;bz=0;  }
+            if (slider==3) { if (jval=="RR") { cw=40; };  if (jval=="LL") { cw=0; };  if (jval=="HC") { cw=20; };  if (jval=="UU") { cx=0; }; if (jval=="DD") { cx=40; };  if (jval=="VC") { cx=20; };  cy=0;cz=0;  }
+            if (slider==4) { if (jval=="RR") { dw=40; };  if (jval=="LL") { dw=0; };  if (jval=="HC") { dw=20; };  if (jval=="UU") { dx=0; }; if (jval=="DD") { dx=40; };  if (jval=="VC") { dx=20; };  dy=0;dz=0;  }
+            recvJoysticks(aw, ax, ay, az, bw, bx, by, bz, cw, cx, cy, cz, dw, dx, dy, dz);
+            Serial.print("Joystick-"); Serial.print(slider); Serial.print("=");  Serial.println(jval);
+          }          
+        }
+      }
+    inputString1 = "";    stringComplete1 = false;
+  }
+  
   if (stringComplete2) { inputString2.trim(); Serial.print("Input Buttons-");  Serial.println(inputString2);
       if (inputString2=="Key_Down_6") { Serial.println(" Bingo"); }  
           inputString2 = "";    stringComplete2 = false;  }
